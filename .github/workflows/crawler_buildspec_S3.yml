@@ -109,7 +109,7 @@ Resources:
       FunctionName: 'CreateCrawlerOnFileUpload'
       Handler: 'index.lambda_handler'  # Ensure the handler matches your Lambda function's code
       Role: !GetAtt LambdaExecutionRole.Arn
-      Runtime: 'python3.8'
+      Runtime: 'python3.9'
       Timeout: 60
       Code:
         S3Bucket: 's3-lambda-function-code-st'  # S3 bucket where your Lambda code is stored
