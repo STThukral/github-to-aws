@@ -1,0 +1,186 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+
+# Very Important NOtes
+# Parameters  - this is created, which is like variable  so that we can assign S3Bucket to "CreateCrawlerFunction" (to create lambda funciton which will call crawler)
+#               as we are refering S3_BUCKET: !Ref S3Bucket (bucket name). note that S3 bucket name shoudl be same in Parameter as in MyS3Bucket (here we are creating bucket and assigning
+#               event on S3 bucket so that when file data.csv file loaded in S3 bucket it should trigget AWS lambda which will trigger crawler)
+
+# MyS3Bucket  - NOTE we created MyS3Bucket along with event becuase we cant create bucket and event seperatly it gives error. Also there is reason why we put the MyS3bucket code after
+#                    "CreateCrawlerFunction" becuase we just need BUcket name uptill here so that we can get from parameter value and then we will create bucket with same name in 
+#                    MyS3bucket. AND note that "LambdaInvokePermission" invoke permissioncis created once bucket is created becuase in "LambdaInvokePermission" we need ARN of MyS3bucket
+#                    which we cant get untill we create bucket.
+
+# we did this to  resolve the issue of event creation on S3 bucket to trigger lambda and create crawler as its was not working before with different possibilties. In this complete yaml
+# we are creating bucket "my-example-s3-bucket-2025" and then creating Lambda function whihc is in zip file create_crawler.zip and loaded in already created bucket 
+# "s3-lambda-function-code-st" through console (creation not part of yaml, its like one generic bucket for code)
+# giving Assume roles to (trust policy in lambda), creating roles and policies to acccess Glue and S3 using (GlueAndS3Permissions) , allowing crawler to access S3 bucket.
+# and LambdaInvokePermission to Lambda Permission to be triggered by S3
+# ALSO check the comments at various levels of script.
+
+
+Parameters:
+  S3Bucket:
+    Type: String
+    Default: 'my-example-s3-bucket-2025'
+
+
+Resources:
+  # S3 output Bucket
+  S3OutputBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: 'my-example-s3-bucket-2025-output'  # Change to your desired bucket name
+      
+  # IAM Role for Lambda function
+  LambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service: 'lambda.amazonaws.com'  # to create lambda 
+            Action: 'sts:AssumeRole'
+          - Effect: 'Allow'
+            Principal:
+              Service: 'glue.amazonaws.com'  # to run lambda and create crawler
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: 'GlueAndS3Permissions'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - 's3:GetObject'
+                Resource: 'arn:aws:s3:::s3-lambda-function-code-st/*'  # Update this with the correct bucket name for the Lambda code
+              - Effect: 'Allow'
+                Action:
+                  - 'glue:GetPartitions'
+                  - 'glue:CreateCrawler'
+                  - 'glue:StartCrawler'
+                  - 'glue:GetCrawler'
+                  - 'glue:GetTable'
+                  - 'glue:GetTables'
+                  - 'glue:GetTableVersion'
+                  - 'glue:GetTableVersions'
+                  - 'glue:GetDatabase'
+                  - 'glue:CreateTable'
+                  - 'glue:CreateDatabase' # if database already created then we dont need this action, if not created then Crawler will create database and then table as per crawler defination.
+                Resource: '*'
+
+              # S3 permissions for Glue crawlers (ensure this is the correct bucket for Glue crawlers)
+              - Effect: 'Allow'
+                Action:
+                  - 's3:GetObject'
+                  - 's3:ListBucket'
+                  - 's3:PutObject'
+                Resource: '*'  # Update this if necessary to restrict to specific buckets (can give access to specific buckets like input , output bucket only,currenlty its on all)
+
+              # CloudWatch Logs permissions
+              - Effect: 'Allow'
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource:
+                  - 'arn:aws:logs:eu-west-2:277707117797:log-group:/aws-glue/crawlers:*'  # Replace with correct region and log group if needed
+              
+  # IAM PassRole permission for Glue to assume LambdaExecutionRole
+  PassRolePolicy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyName: 'GluePassRolePolicy'
+      Roles:
+        - Ref: LambdaExecutionRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Action: 'iam:PassRole'
+            Resource: !GetAtt LambdaExecutionRole.Arn
+
+  # Lambda Function
+  CreateCrawlerFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      FunctionName: 'CreateCrawlerOnFileUpload'
+      Handler: 'index.lambda_handler'  # Ensure the handler matches your Lambda function's code
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: 'python3.8'
+      Timeout: 60
+      Code:
+        S3Bucket: 's3-lambda-function-code-st'  # S3 bucket where your Lambda code is stored
+        S3Key: 'create_crawler.zip'  # Path to your zipped Lambda code
+      Environment:
+        Variables:
+          S3_BUCKET: !Ref S3Bucket
+          GLUE_DATABASE_NAME: 'my_glue_database'  # Change to your Glue database name
+          AWS_LAMBDA_ROLE_ARN: !GetAtt LambdaExecutionRole.Arn
+          
+         
+  # S3 Bucket
+  MyS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties: 
+      BucketName: "my-example-s3-bucket-2025"
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: "s3:ObjectCreated:*"  # Trigger on file creation
+            Function: !GetAtt CreateCrawlerFunction.Arn
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: "suffix"
+                    Value: ".csv"  # Optional: Trigger only for .csv files
+
+
+  # Lambda Permission to be triggered by S3
+  LambdaInvokePermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !Ref CreateCrawlerFunction
+      Principal: 's3.amazonaws.com'
+      SourceArn: !Sub 'arn:aws:s3:::${S3Bucket}'  # when bucket is already created
+      #SourceArn: !GetAtt S3Bucket.Arn            # when bucket is created in yaml script itself  
+
+  # Glue Job to run PySpark ETL script
+  MyGlueJob:
+    Type: 'AWS::Glue::Job'
+    Properties:
+      Name: 'MyPySparkETLJob'
+      Role: !GetAtt LambdaExecutionRole.Arn  # Use the same role for Glue job
+      Command:
+        Name: 'glueetl'
+        ScriptLocation: 's3://s3-lambda-function-code-st/my-pyspark-script.py'  # Location of the PySpark script in S3
+        PythonVersion: '3'  # Use Python 3 for the PySpark job
+      DefaultArguments:
+        '--TempDir': 's3://s3-my-temp-bucket/'  # Temporary directory for intermediate files
+        '--job-bookmark-option': 'job-bookmark-enable'
+        '--additional-python-modules': 'pandas'  # Example of additional Python modules, we can specify verison as well but its not working with version 
+        '--log-uri': 's3://s3-my-temp-bucket/'  # For storing logs in S3
+      MaxCapacity: 1  # Number of DPUs (Data Processing Units) to use for the job
+      Timeout: 60  # Timeout in minutes
+      MaxRetries: 1  # Maximum retries for the job
+
+
+    
+Outputs:
+  S3BucketName:
+    Value: !Ref S3Bucket
+    Description: 'Name of the S3 bucket'
+
+  LambdaFunctionName:
+    Value: !Ref CreateCrawlerFunction
+    Description: 'Lambda function name'
+
+  GlueCrawlerName:
+    Value: 'CreateCrawlerOnFileUpload'
+    Description: 'Glue Crawler that will be created by Lambda'
+
+  GlueJob:
+    Value: !Ref MyGlueJob
+    Description: 'Glue Job for running PySpark ETL script'
