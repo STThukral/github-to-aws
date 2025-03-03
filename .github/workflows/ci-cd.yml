@@ -1,4 +1,4 @@
-name: CI/CD Pipeline for CloudFormations
+name: CI/CD Pipeline for CloudFormation
 
 on:
   push:
