@@ -28,7 +28,7 @@ jobs:
 
       - name: Validate CloudFormation template
         run: |
-          cfn-lint crawler_buildspec_S3.yml
+          cfn-lint .github/workflows/crawler_buildspec_S3.yml
 
   # Job to deploy the CloudFormation template
   deploy:
