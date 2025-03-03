@@ -16,9 +16,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install cfn-lint
+      # Step 3: Verify if cfn-lint is installed
+      - name: Check if cfn-lint is installed
         run: |
-          pip install cfn-lint
+          if ! command -v cfn-lint &> /dev/null; then
+            echo "cfn-lint could not be found, installing..."
+            pip install cfn-lint
+          else
+            echo "cfn-lint is already installed."
+          fi
 
       - name: Validate CloudFormation template
         run: |
