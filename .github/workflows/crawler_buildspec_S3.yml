@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 
 
-# Very Important NOTES
+# Very Important NOTEs
 # Parameters  - this is created, which is like variable  so that we can assign S3Bucket to "CreateCrawlerFunction" (to create lambda funciton which will call crawler)
 #               as we are refering S3_BUCKET: !Ref S3Bucket (bucket name). note that S3 bucket name shoudl be same in Parameter as in MyS3Bucket (here we are creating bucket and assigning
 #               event on S3 bucket so that when file data.csv file loaded in S3 bucket it should trigget AWS lambda which will trigger crawler)
