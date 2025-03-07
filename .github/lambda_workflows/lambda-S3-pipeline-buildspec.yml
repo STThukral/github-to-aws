@@ -103,7 +103,7 @@ Resources:
       RoleArn: !GetAtt CodePipelineRole.Arn
       ArtifactStore:
         Type: 'S3'
-        Location: !Ref '$S3Bucket'  # Optional: If you want to store pipeline artifacts
+        Location: 'my-example-s3-bucket-2025'  # Optional: If you want to store pipeline artifacts
       Stages:
         - Name: 'Source'
           Actions:
