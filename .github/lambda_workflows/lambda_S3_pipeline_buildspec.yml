@@ -88,6 +88,7 @@ Resources:
         Type: 'CODEPIPELINE'
       Artifacts:
         Type: 'CODEPIPELINE'
+      BuildSpec: buildspec.yml # Points to the buildspec.yml in the GitHub repository
 
  
   # CodePipeline Definition (GitHub as source)
@@ -129,17 +130,3 @@ Resources:
                 - Name: 'BuildOutput'
               Configuration:
                 ProjectName: !Ref CodeBuildProject
-
-  # CodeBuild Project for building Lambda code
-  CodeBuildProject:
-    Type: 'AWS::CodeBuild::Project'
-    Properties:
-      Name: 'BuildLambdaFunction'
-      Environment:
-        ComputeType: 'BUILD_GENERAL1_SMALL'
-        Image: 'aws/codebuild/standard:5.0'
-        Type: 'LINUX_CONTAINER'
-      Source:
-        Type: 'CODEPIPELINE'
-      Artifacts:
-        Type: 'CODEPIPELINE'
