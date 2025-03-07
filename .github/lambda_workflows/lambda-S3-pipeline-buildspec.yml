@@ -5,6 +5,11 @@ Parameters:
   S3Bucket:
     Type: String
     Default: 'my-example-s3-bucket-2025'
+  
+   GitHubToken:
+    Type: String
+    NoEcho: true  # Ensures the token is not displayed in CloudFormation logs
+    Description: "GitHub OAuth token to access the repository"
 
 Resources:
   # S3 output Bucket
