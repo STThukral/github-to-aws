@@ -3,7 +3,7 @@ AWSTemplateFormatVersion: '2010-09-09'
 Parameters:
   S3Bucket:
     Type: String
-    Default: 'my-app-bucket-${AWS::AccountId}'
+    Default: 'my-app-bucket-${AWS::AccountId}-${AWS::Region}'
 
 Resources:
   
@@ -25,7 +25,7 @@ Resources:
               - Effect: 'Allow'
                 Action:
                   - 's3:GetObject'
-                Resource: !Sub 'arn:aws:s3:::my-app-bucket-${AWS::AccountId}/*'
+                Resource: !Sub 'arn:aws:s3:::${S3BucketName}/*'
               - Effect: 'Allow'
                 Action:
                   - 'logs:*'
