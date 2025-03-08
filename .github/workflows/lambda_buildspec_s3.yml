@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Sub 'my-app-bucket-${AWS::AccountId}'
+
+  LambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service: 'lambda.amazonaws.com'
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: 'LambdaS3Policy'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - 's3:GetObject'
+                Resource: !Sub 'arn:aws:s3:::my-app-bucket-${AWS::AccountId}/*'
+              - Effect: 'Allow'
+                Action:
+                  - 'logs:*'
+                Resource: '*'
+
+  LambdaFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Handler: 'index.handler'  # Update based on your Lambda function entry point
+      Role: !GetAtt LambdaExecutionRole.Arn
+      FunctionName: 'S3EventLambdaFunction'
+      Runtime: 'python3.9'  # Update based on your Lambda runtime
+      Timeout: 60
+
+  S3BucketEvent:
+    Type: 'AWS::S3::BucketNotification'
+    Properties:
+      Bucket: !Ref S3Bucket
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: 's3:ObjectCreated:*'
+            Function: !GetAtt LambdaFunction.Arn
+
+Outputs:
+  S3BucketName:
+    Value: !Ref S3Bucket
+    Description: 'Name of the S3 Bucket'
+
+  LambdaFunctionName:
+    Value: !Ref LambdaFunction
+    Description: 'Lambda function name'
