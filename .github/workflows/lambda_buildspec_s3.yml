@@ -53,7 +53,7 @@ Resources:
   MyS3Bucket:
     Type: 'AWS::S3::Bucket'
     Properties:
-      BucketName: !Ref S3Bucket
+      BucketName: !Sub 'my-app-bucket-${AWS::AccountId}-${AWS::Region}'
       NotificationConfiguration:
         LambdaConfigurations:
           - Event: "s3:ObjectCreated:*"  # Trigger on file creation
