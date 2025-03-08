@@ -1,10 +1,12 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Resources:
-  S3Bucket:
-    Type: 'AWS::S3::Bucket'
-    Properties:
-      BucketName: !Sub 'my-app-bucket-${AWS::AccountId}'
 
+Parameters:
+  S3Bucket:
+    Type: String
+    Default: 'my-app-bucket-${AWS::AccountId}'
+
+Resources:
+  
   LambdaExecutionRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -37,15 +39,20 @@ Resources:
       FunctionName: 'S3EventLambdaFunction'
       Runtime: 'python3.9'  # Update based on your Lambda runtime
       Timeout: 60
-
-  S3BucketEvent:
-    Type: 'AWS::S3::BucketNotification'
+  
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
     Properties:
-      Bucket: !Ref S3Bucket
+      BucketName: !Ref S3Bucket
       NotificationConfiguration:
         LambdaConfigurations:
-          - Event: 's3:ObjectCreated:*'
+          - Event: "s3:ObjectCreated:*"  # Trigger on file creation
             Function: !GetAtt LambdaFunction.Arn
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: "suffix"
+                    Value: ".csv"  # Optional: Trigger only for .csv files
 
 Outputs:
   S3BucketName:
