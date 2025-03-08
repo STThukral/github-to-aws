@@ -62,6 +62,14 @@ Resources:
                   - Name: "suffix"
                     Value: ".csv"  # Optional: Trigger only for .csv files
 
+  LambdaInvokePermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !Ref LambdaFunction
+      Principal: 's3.amazonaws.com'
+      SourceArn: !Sub 'arn:aws:s3:::${S3BucketName}'
+
 Outputs:
   S3BucketName:
     Value: !Ref MyS3Bucket
