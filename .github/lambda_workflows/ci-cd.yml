@@ -1,0 +1,54 @@
+name: CI/CD Pipeline for CloudFormations
+
+on:
+  push:
+    branches:
+      - main    # Trigger the pipeline when there's a push to the 'main' branch
+  pull_request:
+    branches:
+      - main    # Trigger for pull requests targeting 'main' branch
+
+jobs:
+  # Job to validate the CloudFormation template
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Step 3: Verify if cfn-lint is installed
+      - name: Check if cfn-lint is installed
+        run: |
+          if ! command -v cfn-lint &> /dev/null; then
+            echo "cfn-lint could not be found, installing..."
+            pip install cfn-lint
+          else
+            echo "cfn-lint is already installed."
+          fi
+
+      - name: Validate CloudFormation template
+        run: |
+          cfn-lint .github/lambda_workflows/lambda-S3-pipeline-buildspec.yml
+
+  # Job to deploy the CloudFormation template
+  deploy:
+    runs-on: ubuntu-latest
+    needs: validate  # Ensure 'validate' job runs before this one
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-2  # Adjust to your desired region
+
+      - name: Deploy CloudFormation stack
+        run: |
+          aws cloudformation deploy \
+            --template-file .github/workflows/lambda-S3-pipeline-buildspec.yml \
+            --stack-name my-cloudformation-stack \
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
+            --no-fail-on-empty-changeset || { echo 'Deployment failed'; exit 1; }

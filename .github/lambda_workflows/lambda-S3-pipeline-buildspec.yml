@@ -117,7 +117,7 @@ Resources:
                 - Name: 'SourceOutput'
               Configuration:
                 Owner: STThukral
-                Repo: "https://github.com/STThukral/github-to-aws"  # Correct URL without .git extension
+                Repo: "https://github.com/STThukral/github-to-aws/"  # Correct URL without .git extension
                 Branch: "main"  # The branch to use for the pipeline
                 OAuthToken: !Ref GitHubToken  # OAuth token for GitHub access
 
