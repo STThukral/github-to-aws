@@ -25,9 +25,9 @@ Resources:
                 - Name: 'SourceOutput'
               Configuration:
                 Owner: 'STThukral'
-                Repo: 'https://github.com/STThukral/github-to-aws'
+                Repo: 'https://github.com/STThukral/github-to-aws'  # The name of the repository, not the full URL
                 Branch: 'main'
-                OAuthToken: '!Ref GitHubToken'
+                OAuthToken: !Ref GitHubToken
         - Name: 'Build'
           Actions:
             - Name: 'LambdaBuild'
@@ -44,30 +44,33 @@ Resources:
                 ProjectName: !Ref 'CodeBuildProject'
         - Name: 'Deploy'
           Actions:
-            - Name: 'LambdaDeploy'
+            - Name: 'CloudFormationDeploy'
               ActionTypeId:
                 Category: 'Deploy'
                 Owner: 'AWS'
-                Provider: 'Lambda'
+                Provider: 'CloudFormation'
                 Version: '1'
               InputArtifacts:
-                - Name: 'BuildOutput'
+                - Name: 'SourceOutput'
               Configuration:
-                FunctionName: !Ref LambdaFunction
+                ActionMode: 'CREATE_UPDATE'
+                StackName: 'LambdaStack'
+                TemplatePath: 'SourceOutput::lambda_buildspec_S3.yml'  # Correct reference to the CloudFormation template
+                Capabilities: 'CAPABILITY_IAM'
 
   CodeBuildProject:
     Type: 'AWS::CodeBuild::Project'
     Properties:
       Name: 'LambdaBuildProject'
       Source:
-        Type: 'S3'
-        Location: 'your-source-code-location'
+        Type: 'CodePipeline'
+        Location: 'SourceOutput'  # Refers to the artifact from CodePipeline Source stage
       Artifacts:
         Type: 'S3'
-        Location: 'your-artifacts-location'
+        Location: 'my-st-app-bucket-2025'
         Name: 'lambda-output'
       Environment:
         ComputeType: 'BUILD_GENERAL1_SMALL'
-        Image: 'aws/codebuild/python3.9'
+        Image: 'aws/codebuild/python3.9'  # Or 'aws/codebuild/nodejs:14.x' depending on your Lambda runtime
         Type: 'LINUX_CONTAINER'
       ServiceRole: arn:aws:iam::${AWS::AccountId}:role/CodeBuildServiceRole
