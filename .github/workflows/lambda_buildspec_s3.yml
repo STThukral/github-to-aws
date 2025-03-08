@@ -40,7 +40,7 @@ Resources:
       Runtime: 'python3.9'  # Update based on your Lambda runtime
       Timeout: 60
   
-  S3Bucket:
+  MyS3Bucket:
     Type: 'AWS::S3::Bucket'
     Properties:
       BucketName: !Ref S3Bucket
