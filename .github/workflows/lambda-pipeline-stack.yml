@@ -1,11 +1,17 @@
+Parameters:
+  GitHubToken:
+    Type: String
+    NoEcho: true  # Ensures the token is not displayed in CloudFormation logs
+    Description: "GitHub OAuth token to access the repository"
+
 Resources:
   CodePipeline:
     Type: 'AWS::CodePipeline::Pipeline'
     Properties:
-      RoleArn: arn:aws:iam::your-account-id:role/CodePipelineServiceRole
+      RoleArn: arn:aws:iam::${AWS::AccountId}:role/CodePipelineServiceRole
       ArtifactStore:
         Type: S3
-        Location: 'your-artifact-store-bucket'
+        Location: 'my-st-app-bucket-2025'
       Stages:
         - Name: 'Source'
           Actions:
@@ -18,10 +24,10 @@ Resources:
               OutputArtifacts:
                 - Name: 'SourceOutput'
               Configuration:
-                Owner: 'your-github-username'
-                Repo: 'your-repository-name'
+                Owner: 'STThukral'
+                Repo: 'https://github.com/STThukral/github-to-aws'
                 Branch: 'main'
-                OAuthToken: 'your-github-oauth-token'
+                OAuthToken: '!Ref GitHubToken'
         - Name: 'Build'
           Actions:
             - Name: 'LambdaBuild'
@@ -62,6 +68,6 @@ Resources:
         Name: 'lambda-output'
       Environment:
         ComputeType: 'BUILD_GENERAL1_SMALL'
-        Image: 'aws/codebuild/nodejs:14.x'
+        Image: 'aws/codebuild/python3.9'
         Type: 'LINUX_CONTAINER'
-      ServiceRole: arn:aws:iam::your-account-id:role/CodeBuildServiceRole
+      ServiceRole: arn:aws:iam::${AWS::AccountId}:role/CodeBuildServiceRole
