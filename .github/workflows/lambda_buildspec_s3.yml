@@ -1,12 +1,11 @@
 AWSTemplateFormatVersion: '2010-09-09'
 
 Parameters:
-  S3Bucket:
+  S3BucketName:
     Type: String
-    Default: 'my-app-bucket-${AWS::AccountId}-${AWS::Region}'
+    Default: 'my-app-bucket-${AWS::AccountId}-${AWS::Region}'  # Ensure unique bucket name
 
 Resources:
-  
   LambdaExecutionRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -25,7 +24,7 @@ Resources:
               - Effect: 'Allow'
                 Action:
                   - 's3:GetObject'
-                Resource: !Sub 'arn:aws:s3:::${S3Bucket}/*'
+                Resource: !Sub 'arn:aws:s3:::${S3BucketName}/*'  # Ensure access to the bucket
               - Effect: 'Allow'
                 Action:
                   - 'logs:*'
@@ -37,23 +36,22 @@ Resources:
       Handler: 'index.handler'  # Update based on your Lambda function entry point
       Role: !GetAtt LambdaExecutionRole.Arn
       FunctionName: 'S3EventLambdaFunction'
-      Runtime: 'python3.9'  # Update based on your Lambda runtime
+      Runtime: 'python3.9'
       Timeout: 60
       Code:
         ZipFile: |
           import json
           def lambda_handler(event, context):
               print("Received event: " + json.dumps(event, indent=2))
-              # Your Lambda logic here
               return {
                   'statusCode': 200,
                   'body': json.dumps('Hello from Lambda!')
               }
-  
+
   MyS3Bucket:
     Type: 'AWS::S3::Bucket'
     Properties:
-      BucketName: !Sub 'my-app-bucket-${AWS::AccountId}-${AWS::Region}'
+      BucketName: !Ref S3BucketName  # Ensure unique bucket name
       NotificationConfiguration:
         LambdaConfigurations:
           - Event: "s3:ObjectCreated:*"  # Trigger on file creation
@@ -66,7 +64,7 @@ Resources:
 
 Outputs:
   S3BucketName:
-    Value: !Ref S3Bucket
+    Value: !Ref MyS3Bucket
     Description: 'Name of the S3 Bucket'
 
   LambdaFunctionName:
