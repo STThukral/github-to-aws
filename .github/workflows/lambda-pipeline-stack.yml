@@ -8,7 +8,7 @@ Resources:
   CodePipeline:
     Type: 'AWS::CodePipeline::Pipeline'
     Properties:
-      RoleArn: RoleArn: !Sub 'arn:aws:iam::${AWS::AccountId}:role/CodePipelineServiceRole'
+      RoleArn: !Sub 'arn:aws:iam::${AWS::AccountId}:role/CodePipelineServiceRole'
       ArtifactStore:
         Type: S3
         Location: 'my-st-app-bucket-2025'
