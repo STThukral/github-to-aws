@@ -1,0 +1,67 @@
+Resources:
+  CodePipeline:
+    Type: 'AWS::CodePipeline::Pipeline'
+    Properties:
+      RoleArn: arn:aws:iam::your-account-id:role/CodePipelineServiceRole
+      ArtifactStore:
+        Type: S3
+        Location: 'your-artifact-store-bucket'
+      Stages:
+        - Name: 'Source'
+          Actions:
+            - Name: 'GitHub_Source'
+              ActionTypeId:
+                Category: 'Source'
+                Owner: 'ThirdParty'
+                Provider: 'GitHub'
+                Version: '1'
+              OutputArtifacts:
+                - Name: 'SourceOutput'
+              Configuration:
+                Owner: 'your-github-username'
+                Repo: 'your-repository-name'
+                Branch: 'main'
+                OAuthToken: 'your-github-oauth-token'
+        - Name: 'Build'
+          Actions:
+            - Name: 'LambdaBuild'
+              ActionTypeId:
+                Category: 'Build'
+                Owner: 'AWS'
+                Provider: 'CodeBuild'
+                Version: '1'
+              InputArtifacts:
+                - Name: 'SourceOutput'
+              OutputArtifacts:
+                - Name: 'BuildOutput'
+              Configuration:
+                ProjectName: !Ref 'CodeBuildProject'
+        - Name: 'Deploy'
+          Actions:
+            - Name: 'LambdaDeploy'
+              ActionTypeId:
+                Category: 'Deploy'
+                Owner: 'AWS'
+                Provider: 'Lambda'
+                Version: '1'
+              InputArtifacts:
+                - Name: 'BuildOutput'
+              Configuration:
+                FunctionName: !Ref LambdaFunction
+
+  CodeBuildProject:
+    Type: 'AWS::CodeBuild::Project'
+    Properties:
+      Name: 'LambdaBuildProject'
+      Source:
+        Type: 'S3'
+        Location: 'your-source-code-location'
+      Artifacts:
+        Type: 'S3'
+        Location: 'your-artifacts-location'
+        Name: 'lambda-output'
+      Environment:
+        ComputeType: 'BUILD_GENERAL1_SMALL'
+        Image: 'aws/codebuild/nodejs:14.x'
+        Type: 'LINUX_CONTAINER'
+      ServiceRole: arn:aws:iam::your-account-id:role/CodeBuildServiceRole
