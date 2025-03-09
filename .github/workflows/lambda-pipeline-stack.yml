@@ -93,7 +93,7 @@ Resources:
                 - Name: 'SourceOutput'
               Configuration:
                 Owner: 'STThukral'
-                Repo: 'https://github.com/STThukral/github-to-aws'  # The name of the repository, not the full URL
+                Repo: 'STThukral/github-to-aws'  # The name of the repository, not the full URL
                 Branch: 'main'
                 OAuthToken: !Ref GitHubToken
         - Name: 'Build'
