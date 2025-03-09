@@ -143,6 +143,7 @@ Resources:
                 ActionMode: 'CREATE_UPDATE'
                 StackName: 'LambdaStack'
                 TemplatePath: 'SourceOutput::lambda_buildspec_S3.yml'  # Correct reference to the CloudFormation template
+                RoleArn: arn:aws:iam::277707117797:role/CodePipelineServiceRole  # Ensure this role is specified
                 Capabilities: 'CAPABILITY_IAM'
 
   
