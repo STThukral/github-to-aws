@@ -40,8 +40,8 @@ Resources:
         Location: 'my-st-app-bucket-2025'
         Name: 'lambda-output'
       Environment:
-        ComputeType: 'BUILD_GENERAL1_SMALL'
-        Image: 'aws/codebuild/python3.9'  # Or 'aws/codebuild/nodejs:14.x' depending on your Lambda runtime
+        ComputeType: 'BUILD_GENERAL1_MEDIUM'  # Updated compute type
+        Image: 'aws/codebuild/python3.9'     # Python image, should work with larger compute type
         Type: 'LINUX_CONTAINER'
       ServiceRole: !GetAtt CodeBuildServiceRole.Arn
   
