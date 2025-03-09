@@ -22,11 +22,30 @@ Resources:
             Statement:
               - Effect: "Allow"
                 Action:
+                  - "s3:ListBucket"
                   - "s3:GetObject"
                   - "s3:PutObject"
+                  - "cloudformation:DescribeStacks"
+                  - "cloudformation:CreateStack"
+                  - "cloudformation:UpdateStack"
+                  - "cloudformation:DeleteStack"
+                  - "iam:PassRole"
+                Resource:
+                  - "arn:aws:s3:::my-st-app-bucket-2025"
+                  - "arn:aws:s3:::my-st-app-bucket-2025/*"
+  
+              - Effect: "Allow"
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: "arn:aws:logs:eu-west-2:277707117797:log-group:/aws/codebuild/*"
+  
+              - Effect: "Allow"
+                Action:
                   - "codebuild:BatchGetBuilds"
                   - "codebuild:StartBuild"
-                Resource: "*"
+              Resource: "*"
   
   CodePipelineServiceRole:
     Type: "AWS::IAM::Role"
