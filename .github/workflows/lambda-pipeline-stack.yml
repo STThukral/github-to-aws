@@ -32,9 +32,9 @@ Resources:
     Type: 'AWS::CodeBuild::Project'
     Properties:
       Name: 'LambdaBuildProject'
-      #Source:
-      #  Type: 'CodePipeline'
-      #  Location: 'SourceOutput'  # Refers to the artifact from CodePipeline Source stage
+      Source:
+        Type: 'GITHUB'
+        Location: 'https://github.com/STThukral/github-to-aws'
       Artifacts:
         Type: 'S3'
         Location: 'my-st-app-bucket-2025'
