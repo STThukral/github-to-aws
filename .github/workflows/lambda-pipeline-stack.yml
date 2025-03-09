@@ -28,6 +28,34 @@ Resources:
                   - "codebuild:StartBuild"
                 Resource: "*"
   
+  CodePipelineServiceRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action: "sts:AssumeRole"
+            Principal:
+              Service: "codepipeline.amazonaws.com"
+      Policies:
+        - PolicyName: "CodePipelineServicePolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "s3:GetObject"
+                  - "s3:PutObject"
+                  - "s3:ListBucket"
+                  - "cloudformation:DescribeStacks"
+                  - "cloudformation:CreateStack"
+                  - "cloudformation:UpdateStack"
+                  - "codebuild:BatchGetBuilds"
+                  - "codebuild:StartBuild"
+                  - "iam:PassRole"  # Important for passing roles to other services like CodeBuild
+                Resource: "*"
+  
   CodeBuildProject:
     Type: 'AWS::CodeBuild::Project'
     Properties:
@@ -48,7 +76,7 @@ Resources:
   CodePipeline:
     Type: 'AWS::CodePipeline::Pipeline'
     Properties:
-      RoleArn: !Sub 'arn:aws:iam::${AWS::AccountId}:role/CodePipelineServiceRole'
+      RoleArn: !GetAtt CodePipelineServiceRole.Arn  # Ensure this references the correct role
       ArtifactStore:
         Type: S3
         Location: 'my-st-app-bucket-2025'
