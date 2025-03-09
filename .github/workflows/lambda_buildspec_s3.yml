@@ -3,7 +3,7 @@ AWSTemplateFormatVersion: '2010-09-09'
 Parameters:
   S3BucketName:
     Type: String
-    Default: 'my-st-app-bucket-2025'  # Ensure unique bucket name
+    Default: 'my-st-app-bucket-2025'  # Ensure unique bucket names
 
 Resources:
   LambdaExecutionRole:
