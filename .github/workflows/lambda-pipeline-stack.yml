@@ -45,7 +45,7 @@ Resources:
                 Action:
                   - "codebuild:BatchGetBuilds"
                   - "codebuild:StartBuild"
-              Resource: "*"
+                Resource: "*"
   
   CodePipelineServiceRole:
     Type: "AWS::IAM::Role"
