@@ -7,6 +7,8 @@ on:
   pull_request:
     branches:
       - main    # Trigger for pull requests targeting 'main' branch
+    paths:
+      - 'crawler_buildspec_s3.yml'  # Trigger only when crawler_buildspec_s3.yml is changed
 
 jobs:
   # Job to validate the CloudFormation template
