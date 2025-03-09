@@ -41,7 +41,7 @@ Resources:
         Name: 'lambda-output'
       Environment:
         ComputeType: 'BUILD_GENERAL1_MEDIUM'  # Updated compute type
-        Image: 'aws/codebuild/python3.9'     # Python image, should work with larger compute type
+        Image: 'aws/codebuild/standard:4.0'   # Image compatible with medium compute type
         Type: 'LINUX_CONTAINER'
       ServiceRole: !GetAtt CodeBuildServiceRole.Arn
   
